@@ -72,6 +72,26 @@ class EvmCalculationServiceTest {
     }
 
     @Test
+    void returnsUndeterminedCostWhenAcIsZeroButEvIsGreaterThanZero() {
+        Activity activity = new Activity(
+                1L,
+                "Validacion",
+                BigDecimal.valueOf(1000),
+                BigDecimal.valueOf(50),
+                BigDecimal.valueOf(25),
+                BigDecimal.ZERO
+        );
+
+        ActivityIndicators indicators = service.calculateActivityIndicators(activity);
+
+        assertThat(indicators.costPerformanceIndex().isDefined()).isFalse();
+        assertThat(indicators.schedulePerformanceIndex().isDefined()).isTrue();
+        assertThat(indicators.schedulePerformanceIndex().value()).isEqualByComparingTo("0.5000");
+        assertThat(indicators.costInterpretation()).isEqualTo(CostInterpretation.NO_DETERMINADO);
+        assertThat(indicators.scheduleInterpretation()).isEqualTo(ScheduleInterpretation.ATRASADO);
+    }
+
+    @Test
     void returnsUndeterminedInterpretationsWhenIndexesAreUndefined() {
         Activity activity = new Activity(
                 1L,

@@ -5,6 +5,15 @@ import com.trycore.evmTracker.domain.model.ActivityIndicators;
 import com.trycore.evmTracker.domain.model.Project;
 import com.trycore.evmTracker.presentation.dto.ProjectRequest;
 import com.trycore.evmTracker.presentation.dto.ProjectResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.trycore.evmTracker.presentation.exception.ApiError;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Projects", description = "Project CRUD operations and EVM indicator calculation")
+@SecurityRequirement(name = "bearer-jwt")
 @RestController
 @RequestMapping("/projects")
 public class ProjectController {
@@ -29,6 +40,12 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
+    @Operation(summary = "Create project", description = "Create a new project with the provided name.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Project created successfully", content = @Content(schema = @Schema(implementation = ProjectResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid project data", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - bearer token missing or invalid", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProjectResponse create(@Valid @RequestBody ProjectRequest request) {
@@ -36,6 +53,11 @@ public class ProjectController {
         return ProjectResponse.from(project);
     }
 
+    @Operation(summary = "List projects", description = "Retrieve all projects available for the authenticated user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of projects", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectResponse.class)))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - bearer token missing or invalid", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
     @GetMapping
     public List<ProjectResponse> findAll() {
         return projectService.findAll().stream()
@@ -43,22 +65,47 @@ public class ProjectController {
                 .toList();
     }
 
+    @Operation(summary = "Get project by id", description = "Retrieve a single project by its database identifier.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Project found", content = @Content(schema = @Schema(implementation = ProjectResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - bearer token missing or invalid", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Project not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
     @GetMapping("/{id}")
     public ProjectResponse findById(@PathVariable Long id) {
         return ProjectResponse.from(projectService.findById(id));
     }
 
+    @Operation(summary = "Update project", description = "Update the name of an existing project.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Project updated", content = @Content(schema = @Schema(implementation = ProjectResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid project data", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - bearer token missing or invalid", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Project not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
     @PutMapping("/{id}")
     public ProjectResponse update(@PathVariable Long id, @Valid @RequestBody ProjectRequest request) {
         return ProjectResponse.from(projectService.update(id, request.name()));
     }
 
+    @Operation(summary = "Delete project", description = "Delete an existing project by its identifier.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Project deleted successfully", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - bearer token missing or invalid", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Project not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         projectService.delete(id);
     }
 
+    @Operation(summary = "Calculate indicators", description = "Calculate EVM indicators for a project.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Indicators calculated", content = @Content(schema = @Schema(implementation = ActivityIndicators.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - bearer token missing or invalid", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Project not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
     @GetMapping("/{id}/indicators")
     public ActivityIndicators calculateIndicators(@PathVariable Long id) {
         return projectService.calculateIndicators(id);
