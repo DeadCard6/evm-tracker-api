@@ -1,4 +1,4 @@
-package com.trycore.evmTracker.presentation.rest.dto;
+package com.trycore.evmTracker.presentation.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

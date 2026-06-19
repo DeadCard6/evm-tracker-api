@@ -1,4 +1,4 @@
-package com.trycore.evmTracker.presentation.rest;
+package com.trycore.evmTracker.presentation.exception;
 
 import java.util.List;
 

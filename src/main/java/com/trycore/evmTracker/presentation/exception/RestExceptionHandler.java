@@ -1,4 +1,4 @@
-package com.trycore.evmTracker.presentation.rest;
+package com.trycore.evmTracker.presentation.exception;
 
 import com.trycore.evmTracker.application.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
