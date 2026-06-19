@@ -20,12 +20,13 @@ public class ActivityService {
     }
 
     public Activity create(Long projectId,
+                           Long userId,
                            String name,
                            BigDecimal bac,
                            BigDecimal plannedPercentComplete,
                            BigDecimal actualPercentComplete,
                            BigDecimal actualCost) {
-        projectService.findById(projectId);
+        projectService.findByIdAndUser(projectId, userId);
         Activity activity = new Activity(
                 projectId,
                 name,
@@ -37,8 +38,8 @@ public class ActivityService {
         return activityRepository.save(activity);
     }
 
-    public List<Activity> findByProjectId(Long projectId) {
-        projectService.findById(projectId);
+    public List<Activity> findByProjectId(Long projectId, Long userId) {
+        projectService.findByIdAndUser(projectId, userId);
         return activityRepository.findByProjectId(projectId);
     }
 
@@ -48,12 +49,14 @@ public class ActivityService {
     }
 
     public Activity update(Long id,
+                           Long userId,
                            String name,
                            BigDecimal bac,
                            BigDecimal plannedPercentComplete,
                            BigDecimal actualPercentComplete,
                            BigDecimal actualCost) {
         Activity current = findById(id);
+        projectService.findByIdAndUser(current.getProjectId(), userId);
         Activity activity = new Activity(
                 current.getProjectId(),
                 name,
@@ -66,8 +69,9 @@ public class ActivityService {
         return activityRepository.save(activity);
     }
 
-    public void delete(Long id) {
-        findById(id);
+    public void delete(Long id, Long userId) {
+        Activity current = findById(id);
+        projectService.findByIdAndUser(current.getProjectId(), userId);
         activityRepository.deleteById(id);
     }
 }

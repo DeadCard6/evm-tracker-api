@@ -2,6 +2,7 @@ package com.trycore.evmTracker.presentation.controller;
 
 import com.trycore.evmTracker.application.service.ActivityService;
 import com.trycore.evmTracker.application.service.EvmCalculationService;
+import com.trycore.evmTracker.application.service.UserService;
 import com.trycore.evmTracker.domain.model.Activity;
 import com.trycore.evmTracker.presentation.dto.ActivityRequest;
 import com.trycore.evmTracker.presentation.dto.ActivityResponse;
@@ -16,6 +17,7 @@ import com.trycore.evmTracker.presentation.exception.ApiError;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,10 +36,17 @@ public class ActivityController {
 
     private final ActivityService activityService;
     private final EvmCalculationService evmCalculationService;
+    private final UserService userService;
 
-    public ActivityController(ActivityService activityService, EvmCalculationService evmCalculationService) {
+    public ActivityController(ActivityService activityService, EvmCalculationService evmCalculationService, UserService userService) {
         this.activityService = activityService;
         this.evmCalculationService = evmCalculationService;
+        this.userService = userService;
+    }
+
+    private Long getAuthenticatedUserId() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return userService.findByUsername(auth.getName()).getId();
     }
 
     @Operation(summary = "Create activity", description = "Create a new activity for the specified project.")
@@ -50,8 +59,10 @@ public class ActivityController {
     @PostMapping("/projects/{projectId}/activities")
     @ResponseStatus(HttpStatus.CREATED)
     public ActivityResponse create(@PathVariable Long projectId, @Valid @RequestBody ActivityRequest request) {
+        Long userId = getAuthenticatedUserId();
         Activity activity = activityService.create(
                 projectId,
+                userId,
                 request.name(),
                 request.bac(),
                 request.plannedPercentComplete(),
@@ -69,7 +80,8 @@ public class ActivityController {
     })
     @GetMapping("/projects/{projectId}/activities")
     public List<ActivityResponse> findByProjectId(@PathVariable Long projectId) {
-        return activityService.findByProjectId(projectId).stream()
+        Long userId = getAuthenticatedUserId();
+        return activityService.findByProjectId(projectId, userId).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -94,8 +106,10 @@ public class ActivityController {
     })
     @PutMapping("/activities/{id}")
     public ActivityResponse update(@PathVariable Long id, @Valid @RequestBody ActivityRequest request) {
+        Long userId = getAuthenticatedUserId();
         Activity activity = activityService.update(
                 id,
+                userId,
                 request.name(),
                 request.bac(),
                 request.plannedPercentComplete(),
@@ -114,7 +128,8 @@ public class ActivityController {
     @DeleteMapping("/activities/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        activityService.delete(id);
+        Long userId = getAuthenticatedUserId();
+        activityService.delete(id, userId);
     }
 
     private ActivityResponse toResponse(Activity activity) {

@@ -22,5 +22,13 @@ springdoc:
 
 jwt:
   secret: my-very-secret-key-that-is-long-enough-for-hs256
-  expiration-ms: 3600000
+  expiration-ms: 86400000
   refresh-expiration-ms: 86400000
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.trycore.evmTracker: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

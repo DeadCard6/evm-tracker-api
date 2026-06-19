@@ -1,6 +1,7 @@
 package com.trycore.evmTracker.presentation.controller;
 
 import com.trycore.evmTracker.application.service.ProjectService;
+import com.trycore.evmTracker.application.service.UserService;
 import com.trycore.evmTracker.domain.model.ActivityIndicators;
 import com.trycore.evmTracker.domain.model.Project;
 import com.trycore.evmTracker.presentation.dto.ProjectRequest;
@@ -16,6 +17,8 @@ import com.trycore.evmTracker.presentation.exception.ApiError;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,9 +38,16 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final UserService userService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, UserService userService) {
         this.projectService = projectService;
+        this.userService = userService;
+    }
+
+    private Long getAuthenticatedUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userService.findByUsername(auth.getName()).getId();
     }
 
     @Operation(summary = "Create project", description = "Create a new project with the provided name.")
@@ -49,7 +59,8 @@ public class ProjectController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProjectResponse create(@Valid @RequestBody ProjectRequest request) {
-        Project project = projectService.create(request.name());
+        var user = userService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        Project project = projectService.create(request.name(), user);
         return ProjectResponse.from(project);
     }
 
@@ -60,7 +71,8 @@ public class ProjectController {
     })
     @GetMapping
     public List<ProjectResponse> findAll() {
-        return projectService.findAll().stream()
+        Long userId = getAuthenticatedUserId();
+        return projectService.findAllByUser(userId).stream()
                 .map(ProjectResponse::from)
                 .toList();
     }
@@ -73,7 +85,8 @@ public class ProjectController {
     })
     @GetMapping("/{id}")
     public ProjectResponse findById(@PathVariable Long id) {
-        return ProjectResponse.from(projectService.findById(id));
+        Long userId = getAuthenticatedUserId();
+        return ProjectResponse.from(projectService.findByIdAndUser(id, userId));
     }
 
     @Operation(summary = "Update project", description = "Update the name of an existing project.")
@@ -85,7 +98,8 @@ public class ProjectController {
     })
     @PutMapping("/{id}")
     public ProjectResponse update(@PathVariable Long id, @Valid @RequestBody ProjectRequest request) {
-        return ProjectResponse.from(projectService.update(id, request.name()));
+        Long userId = getAuthenticatedUserId();
+        return ProjectResponse.from(projectService.update(id, userId, request.name()));
     }
 
     @Operation(summary = "Delete project", description = "Delete an existing project by its identifier.")
@@ -97,7 +111,8 @@ public class ProjectController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        projectService.delete(id);
+        Long userId = getAuthenticatedUserId();
+        projectService.delete(id, userId);
     }
 
     @Operation(summary = "Calculate indicators", description = "Calculate EVM indicators for a project.")
@@ -108,6 +123,8 @@ public class ProjectController {
     })
     @GetMapping("/{id}/indicators")
     public ActivityIndicators calculateIndicators(@PathVariable Long id) {
-        return projectService.calculateIndicators(id);
+        Long userId = getAuthenticatedUserId();
+        return projectService.calculateIndicators(id, userId);
     }
 }
+
