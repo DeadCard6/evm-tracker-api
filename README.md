@@ -54,23 +54,47 @@ Proyecto Spring Boot para seguimiento de indicadores EVM con autenticación JWT.
     }
     ```
 
-## Inicialización de la base de datos
+## Inicialización de la base de datos (PostgreSQL)
 
-El proyecto usa H2 en memoria en desarrollo. Si querés inicializar la base de datos manualmente, hay un script en:
+La aplicación ahora usa PostgreSQL por defecto. Configuración por defecto en `application.yaml`:
 
-- `scripts/init-db.sql`
-
-Ejemplo usando H2:
-
-```sql
-RUNSCRIPT FROM 'scripts/init-db.sql';
+```
+spring.datasource.url=jdbc:postgresql://localhost:5432/evm_tracker
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.jpa.hibernate.ddl-auto=update
 ```
 
-> Nota: el script crea tablas de usuarios, roles y refresh tokens. La aplicación también genera las tablas automáticamente con `spring.jpa.hibernate.ddl-auto=update`.
+Pasos recomendados para desarrollo local:
 
-## Script de inicialización
+1. Instalar y ejecutar PostgreSQL (por ejemplo con Docker):
 
-El archivo `scripts/init-db.sql` contiene la creación de tablas necesarias para usuarios y refresh tokens, además de un usuario de ejemplo.
+```bash
+docker run --name evm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=evm_tracker -p 5432:5432 -d postgres:15
+```
+
+2. Inicializar tablas y datos de ejemplo (opcional):
+
+```bash
+# usando psql (debe estar instalado)
+psql -h localhost -p 5432 -U postgres -d evm_tracker -f scripts/init-db.sql
+```
+
+3. Ejecutar la aplicación (maven):
+
+```bash
+./mvnw spring-boot:run
+```
+
+Alternativa: configurar variables de entorno en vez de editar `application.yaml`:
+
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/evm_tracker
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
+```
+
+> Nota: Hibernate crea/actualiza las tablas automáticamente con `spring.jpa.hibernate.ddl-auto=update`. El script en `scripts/init-db.sql` añade el usuario `admin` y roles si lo ejecutás manualmente.
 
 ## Git y GitHub
 
