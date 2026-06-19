@@ -9,4 +9,5 @@ public interface ActivityRepository {
     Optional<Activity> findById(Long id);
     List<Activity> findByProjectId(Long projectId);
     void deleteById(Long id);
+    void deleteByProjectId(Long projectId);
 }
