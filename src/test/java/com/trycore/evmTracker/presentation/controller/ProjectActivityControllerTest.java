@@ -1,4 +1,4 @@
-package com.trycore.evmTracker.presentation.rest;
+package com.trycore.evmTracker.presentation.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,10 +1,10 @@
-package com.trycore.evmTracker.presentation.rest;
+package com.trycore.evmTracker.presentation.controller;
 
 import com.trycore.evmTracker.application.service.ProjectService;
 import com.trycore.evmTracker.domain.model.ActivityIndicators;
 import com.trycore.evmTracker.domain.model.Project;
-import com.trycore.evmTracker.presentation.rest.dto.ProjectRequest;
-import com.trycore.evmTracker.presentation.rest.dto.ProjectResponse;
+import com.trycore.evmTracker.presentation.dto.ProjectRequest;
+import com.trycore.evmTracker.presentation.dto.ProjectResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
