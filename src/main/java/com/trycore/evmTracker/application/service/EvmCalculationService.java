@@ -11,6 +11,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class EvmCalculationService {
 
     private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
